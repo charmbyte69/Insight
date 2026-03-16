@@ -1,4 +1,7 @@
 
+# Environment variables
+.env
+
 
 # Database files
 =======

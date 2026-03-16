@@ -1,0 +1,183 @@
+.container {
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10%;
+  color: white;
+  font-family: 'Poppins', sans-serif;
+  overflow: hidden;
+  position: relative;
+}
+
+/* LEFT SECTION */
+
+.leftSection {
+  width: 45%;
+  z-index: 2;
+}
+
+.welcome {
+    position: fixed;
+    top: 295px;
+    left: 247px;
+    font-size: 24px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.logo {
+    position: fixed;
+    top: 39px;
+    left: -80px;
+    width: 1200px;
+}
+
+.description {
+    position: fixed;
+    top: 432px;
+    left: 247px;
+    max-width: 600px;
+    line-height: 1.6;
+    color: #d0d0d0;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* LOGIN CARD */
+
+.loginCard {
+    position: fixed;
+    right: 200px;
+    width: 360px;
+    height: 480px;
+    padding: 45px;
+    border-radius: 20px;
+    background: rgba(90, 90, 90, 0.452);
+    backdrop-filter: blur(20px);
+    text-align: center;
+}
+
+.loginCard h2 {
+    margin-top: 25px;
+    margin-bottom: 60px;
+    font-weight: 600;
+    font-size: 30px;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* INPUT */
+
+.inputGroup {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 10px 20px;
+  margin-bottom: 25px;
+}
+
+.inputGroup img {
+  width: 18px;
+  margin-right: 25px;
+  opacity: 0.4;
+}
+
+.inputGroup input {
+  background: none;
+  border: none;
+  outline: none;
+  color: white;
+  width: 100%;
+  font-size: 14px;
+}
+
+/* BUTTON */
+
+.loginBtn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  margin-top: 10px;
+
+  background: #d9d9d9;
+  color: black;
+  font-weight: 600;
+  font-size: 18px;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+
+  transition: 0.3s;
+}
+
+.loginBtn:hover {
+  background: white;
+  transform: translateY(-2px);
+}
+
+/* REGISTER */
+
+.registerText {
+  margin-top: 15px;
+  font-size: 12px;
+  color: #ccc;
+}
+
+.registerText span {
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.registerText span:hover {
+  text-decoration: underline;
+}
+
+/* BLUR CIRCLES */
+
+.circleTop {
+  position: absolute;
+  top: -150px;
+  left: -200px;
+  width: 500px;
+  height: 500px;
+
+  background: rgba(255, 255, 255, 0.15);
+  filter: blur(180px);
+  border-radius: 50%;
+
+  animation: moveRight 18s linear infinite alternate;
+}
+
+.circleBottom {
+  position: absolute;
+  bottom: -200px;
+  right: -200px;
+  width: 500px;
+  height: 500px;
+
+  background: rgba(255, 255, 255, 0.12);
+  filter: blur(200px);
+  border-radius: 50%;
+
+  animation: moveLeft 20s linear infinite alternate;
+}
+
+/* ANIMATIONS */
+
+@keyframes moveRight {
+  0% {
+    transform: translateX(-200px);
+  }
+  100% {
+    transform: translateX(600px);
+  }
+}
+
+@keyframes moveLeft {
+  0% {
+    transform: translateX(300px);
+  }
+  100% {
+    transform: translateX(-600px);
+  }
+}

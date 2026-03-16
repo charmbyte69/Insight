@@ -1,0 +1,196 @@
+.background{
+    position:relative;
+    width:100%;
+    height:100vh;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+/* blurred circles */
+.circle{
+    position:absolute;
+    width:600px;
+    height:600px;
+    border-radius:50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.4), rgba(255,255,255,0.05));
+    filter: blur(200px);
+}
+
+.circleTop{
+    top:-120px;
+    right:-200px;
+    animation: moveLeft 18s linear infinite;
+}
+
+.circleBottom{
+    bottom:-600px;
+    left:-200px;
+    animation: moveRight 18s linear infinite;
+}
+
+/* circle animations */
+@keyframes moveLeft{
+    0%{
+        transform: translateX(0);
+    }
+    50%{
+        transform: translateX(-900px);
+    }
+    100%{
+        transform: translateX(0);
+    }
+}
+
+@keyframes moveRight{
+    0%{
+        transform: translateX(0);
+    }
+    50%{
+        transform: translateX(900px);
+    }
+    100%{
+        transform: translateX(0);
+    }
+}
+
+/* logo video */
+.logoVideo{
+    width:90vw;
+    width:1700px;
+    height:auto;
+    margin-top:-100px;
+    animation: floatLogo 6s ease-in-out infinite;
+    mix-blend-mode: screen;
+}
+
+.message{
+    position:absolute;
+    bottom:200px;
+    left:53%;
+    transform:translateX(-50%) scale(0.9);
+    width:900px;
+    text-align:center;
+    color:white;
+    font-family: 'Poppins', sans-serif;
+    font-size:16px;
+    line-height:1.6;
+    opacity:0;
+    animation: popText 1s ease forwards;
+}
+
+@keyframes popText{
+    0%{
+        opacity:0;
+        transform:translateX(-50%) scale(0.9);
+    }
+    100%{
+        opacity:1;
+        transform:translateX(-50%) scale(1);
+    }
+}
+
+/* scrollbar width */
+::-webkit-scrollbar{
+  width:10px;
+}
+
+/* scrollbar background */
+::-webkit-scrollbar-track{
+  background:#2B2B2B;
+}
+
+/* scrollbar handle */
+::-webkit-scrollbar-thumb{
+  background:#9e9e9e;
+  border-radius:20px;
+  border:2px solid #2B2B2B;
+}
+
+/* hover */
+::-webkit-scrollbar-thumb:hover{
+  background:#cfcfcf;
+}
+
+.divider{
+  width:80%;
+  height:1px;
+  background:rgba(255, 255, 255, 0.199); /* 50% opacity */
+  margin:-50px auto 10px auto;
+}
+
+/* SECTION LAYOUT */
+.cardsSection{
+  display:flex;
+  justify-content:center;
+  gap:40px;
+  padding:120px 40px;
+}
+
+/* GLASS CARD */
+.card{
+  width:320px;
+  padding:40px 30px;
+
+  border-radius:20px;
+
+  background:rgba(255,255,255,0.08);
+  backdrop-filter:blur(20px);
+
+  border:1px solid rgba(255,255,255,0.15);
+
+  color:white;
+  text-align:center;
+
+  transition:0.4s ease;
+}
+
+/* CARD HOVER */
+.card:hover{
+  transform:translateY(-10px);
+  box-shadow:0 20px 40px rgba(32, 32, 32, 0.4);
+}
+
+/* CARD TITLE */
+.card h3{
+  font-family:'Poppins', sans-serif;
+  font-size:22px;
+  margin-bottom:15px;
+}
+
+/* CARD TEXT */
+.card p{
+  font-size:14px;
+  line-height:1.6;
+  opacity:0.9;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* CTA BUTTON CONTAINER */
+.ctaContainer{
+  display:flex;
+  justify-content:center;
+  padding-bottom:120px;
+}
+
+/* CTA BUTTON */
+.ctaButton{
+  padding:18px 150px;
+  font-size:18px;
+  color:white;
+
+  background:rgba(255,255,255,0.1);
+  backdrop-filter:blur(10px);
+
+  border:1px solid rgba(255,255,255,0.15);
+  border-radius:30px;
+
+  cursor:pointer;
+  transition:0.3s ease;
+}
+
+.ctaButton:hover{
+  transform:scale(1.05);
+  background:rgba(255,255,255,0.2);
+}

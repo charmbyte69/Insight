@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styles from "./Login.module.css";
 import { useNavigate } from "react-router-dom";
-
+import { loginUser } from "../api/auth";
 import userIcon from "../assets/user.png";
 import passIcon from "../assets/passkey.png";
 import logo from "../assets/Logoo.png";
@@ -21,7 +21,7 @@ const Login = () => {
     });
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
     if (!formData.instructorId || !formData.password) {
@@ -29,8 +29,23 @@ const Login = () => {
       return;
     }
 
-    console.log(formData);
-    alert("Login Successful");
+    try {
+      const response = await loginUser({
+        instructor_id: formData.instructorId,
+        password: formData.password,
+      });
+
+      const token = response.data.access_token;
+
+      localStorage.setItem("token", token);
+
+      alert("Login successful");
+
+      navigate("/dashboard");
+
+    } catch (error) {
+      alert(error.response?.data?.detail || "Login failed");
+    }
   };
 
   const goRegister = () => {

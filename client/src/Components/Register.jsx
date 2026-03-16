@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styles from "./Register.module.css";
 import { useNavigate } from "react-router-dom";
-
+import { registerUser } from "../api/auth";
 import userIcon from "../assets/user.png";
 import idIcon from "../assets/id.png";
 import passIcon from "../assets/passkey.png";
@@ -25,7 +25,7 @@ const Register = () => {
     });
   };
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
 
     if (
@@ -43,10 +43,19 @@ const Register = () => {
       return;
     }
 
-    console.log(formData);
-    alert("Registration Successful");
+    try {
+      const response = await registerUser({
+        instructor_id: formData.instructorId,
+        name: formData.fullName,
+        password: formData.password,
+      });
 
-    navigate("/");
+      alert(response.data.message);
+      navigate("/login");
+
+    } catch (error) {
+      alert(error.response?.data?.detail || "Registration failed");
+    }
   };
 
   const returnLogin = () => {

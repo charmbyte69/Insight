@@ -9,11 +9,17 @@ import logo from "../assets/Logoo.png";
 const Login = () => {
   const navigate = useNavigate();
 
+  // Form state
   const [formData, setFormData] = useState({
     instructorId: "",
     password: "",
   });
 
+  // Temporary credentials (since no database yet)
+  const tempInstructorId = "AZX9224088";
+  const tempPassword = "1234567890";
+
+  // Handle input changes
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -48,6 +54,7 @@ const Login = () => {
     }
   };
 
+  // Navigate to register page
   const goRegister = () => {
     navigate("/register");
   };
@@ -76,29 +83,37 @@ const Login = () => {
         <h2>Insight Login</h2>
 
         <form onSubmit={handleLogin}>
+          {/* Instructor ID */}
           <div className={styles.inputGroup}>
-            <img src={userIcon} alt="" />
+            <img src={userIcon} alt="user icon" />
             <input
               type="text"
               name="instructorId"
               placeholder="Instructor ID"
+              value={formData.instructorId}
               onChange={handleChange}
             />
           </div>
 
+          {/* Password */}
           <div className={styles.inputGroup}>
-            <img src={passIcon} alt="" />
+            <img src={passIcon} alt="password icon" />
             <input
               type="password"
               name="password"
               placeholder="Password"
+              value={formData.password}
               onChange={handleChange}
             />
           </div>
 
-          <button className={styles.loginBtn}>Login</button>
+          {/* Login Button */}
+          <button type="submit" className={styles.loginBtn}>
+            Login
+          </button>
         </form>
 
+        {/* Register Link */}
         <p className={styles.registerText}>
           New to Insight? <span onClick={goRegister}>Register</span>
         </p>

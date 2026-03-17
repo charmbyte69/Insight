@@ -22,7 +22,6 @@ def register(user: schema.RegisterRequest, db: Session = Depends(get_db)):
 
     return {"message": f"Instructor {created_user.instructor_id} registered successfully"}
 
-
 @router.post("/login", response_model=schema.TokenResponse)
 def login(data: schema.LoginRequest, db: Session = Depends(get_db)):
 

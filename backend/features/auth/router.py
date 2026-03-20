@@ -29,9 +29,12 @@ def login(data: schema.LoginRequest, db: Session = Depends(get_db)):
 
     if not user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
-
+    
     token = create_access_token(
         {"user_id": user.id}
     )
 
-    return {"access_token": token}
+    return {
+        "Welcome_user": user.name,
+        "access_token": token
+        }

@@ -10,6 +10,7 @@ def create_user(db: Session, user: RegisterRequest):
     if existing:
         raise ValueError("Instructor ID already registered")
 
+    
     db_user = User(
         instructor_id=user.instructor_id,
         name=user.name,

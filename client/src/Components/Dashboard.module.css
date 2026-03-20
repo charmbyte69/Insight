@@ -10,7 +10,7 @@
 
 .logoTopRight {
   position: absolute;
-  top: -550px;
+  top: -700px;
   right: -50px;
   width: 1200px;
   opacity: 0.02;
@@ -19,7 +19,7 @@
 
 .logoBottomLeft {
   position: absolute;
-  bottom: -550px;
+  bottom: -400px;
   left: -50px;
   width: 1200px;
   opacity: 0.02;
@@ -38,8 +38,7 @@
 
 .title {
   font-size: 28px;
-  margin-bottom: 15px;
-  margin-top: -20px;
+  margin-top: 25px;
   font-family: "Poppins", sans-serif;
 }
 
@@ -73,9 +72,7 @@
 
   color: rgba(255, 255, 255, 0.493);
   cursor: pointer;
-
-  margin-bottom: 12px;
-
+  margin-top: 25px;
   transition: 0.2s;
 }
 
@@ -89,37 +86,80 @@
 
 /* Table */
 
-.tableContainer {
+/* GROUP TABLE CONTAINER */
+.groupTable {
   background: linear-gradient(145deg, #3a3a3a, #2e2e2e);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 10px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
 }
 
-.table {
+/* SCROLL WRAPPER */
+.tableWrapper {
+  max-height: 420px;
+  overflow-y: auto;
+
+  /* Hide scrollbar */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tableWrapper::-webkit-scrollbar {
+  display: none;
+}
+
+/* TABLE BASE */
+.groupTable table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
-.table th {
+/* HEADER */
+.groupTable thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: linear-gradient(145deg, #4a4a4a, #3a3a3a);
+}
+
+/* HEADER TEXT */
+.groupTable th {
   text-align: center;
-  font-weight: 500;
-  font-size: 15px;
+  padding: 12px 6px;
+
   font-family: "Poppins", sans-serif;
-  padding: 12px;
-  color: #dddddd9a;
+  font-size: 14px;
+  font-weight: 500;
+
+  color: #e0e0e0;
+
+  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
-.table td {
-  padding: 14px 12px;
+/* BODY CELLS */
+.groupTable td {
+  text-align: center;
+  padding: 10px 6px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  color: rgba(255,255,255,0.85);
 }
 
-.table tbody tr {
-  background: rgba(255, 255, 255, 0.04);
+/* ROW HEIGHT */
+.groupTable tbody tr {
+  height: 40px;
+  transition: 0.2s ease;
 }
 
-.table tbody tr:nth-child(even) {
-  background: rgba(255, 255, 255, 0.07);
+/* STRIPED ROWS */
+.groupTable tbody tr:nth-child(even) {
+  background: rgba(255,255,255,0.05);
+}
+
+/* HOVER EFFECT */
+.groupTable tbody tr:hover {
+  background: rgba(255,255,255,0.08);
 }
 
 /* RIGHT SIDE */
@@ -129,7 +169,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  margin-top: 48px;
+  margin-top: 2px;
 }
 
 /* Top Cards */
@@ -143,8 +183,7 @@
 
 .statCard {
   flex: 1;
-  height: 200px;
-
+  height: 210px;
   background: linear-gradient(145deg, #3a3a3a, #2e2e2e);
   border-radius: 15px;
   font-family: "Poppins", sans-serif;
@@ -170,9 +209,9 @@
 /* Card Labels */
 
 .cardLabel {
-  font-size: 16px;
+  font-size: 20px;
   letter-spacing: 1px;
-  color: #dddddd79;
+  color: #dddddd;
 }
 
 /* Compute Button */
@@ -558,4 +597,185 @@
 
   background:rgba(255,255,255,0.05);
 
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  gap: 15px; /* controls space between title and button */
+  margin-bottom: 10px;
+}
+
+/* SCROLL ENABLE */
+.dashboardContainer {
+  overflow-y: auto;
+}
+
+/* DIVIDER */
+.sectionDivider {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.13);
+  margin: 30px 0;
+}
+
+/* UNGROUP LAYOUT */
+.ungroupLayout {
+  display: flex;
+  gap: 30px;
+}
+
+.ungroupLeft {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  margin-top: 15px;
+  font-family: 'Poppins', sans-serif;
+  gap: 20px;
+}
+
+/* SOLUTION CARD */
+.solutionCard {
+  height: 289px;
+  background: linear-gradient(145deg, #3a3a3a, #2e2e2e);
+  border-radius: 15px;
+  padding: 15px;
+}
+
+/* RIGHT TABLE */
+/* MAIN CONTAINER */
+.ungroupTable {
+  flex: 1;
+  background: linear-gradient(145deg, #3a3a3a, #2e2e2e);
+  border-radius: 16px;
+  padding: 10px;
+  margin-top: 15px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+}
+
+/* SCROLL AREA */
+.tableWrapper {
+  max-height: 500px; /* 👈 controls height */
+  overflow-y: auto;
+  border-radius: 12px;
+}
+
+/* TABLE BASE */
+.ungroupTable table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+/* HEADER */
+.ungroupTable thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+
+  background: linear-gradient(145deg, #4a4a4a, #3a3a3a);
+}
+
+/* HEADER CELLS */
+.ungroupTable th {
+  text-align: center;
+  padding: 12px 0;
+
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+
+  color: #e0e0e0;
+  letter-spacing: 0.5px;
+
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+/* BODY CELLS */
+.ungroupTable td {
+  text-align: center;
+  padding: 10px 0;
+  font-family: 'Poppins',sans-serif;
+  font-size: 18px;
+  color: rgba(255,255,255,0.8);
+}
+
+/* ROW HEIGHT CONTROL */
+.ungroupTable tr {
+  height: 40px;
+  transition: 0.2s;
+}
+
+/* STRIPED ROWS */
+.ungroupTable tbody tr:nth-child(even) {
+  background: rgba(255,255,255,0.05);
+}
+
+/* HOVER EFFECT */
+.ungroupTable tbody tr:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+/* SMOOTH SCROLLBAR (optional 🔥) */
+.tableWrapper::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+
+.tableWrapper::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.2);
+  border-radius: 10px;
+}
+
+.tableWrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cardValue {
+  font-size: 48px;
+  color: white;
+  margin-top: 20px;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* ENTER ANIMATION */
+.modalEnter {
+  animation: popIn 0.3s ease forwards;
+}
+
+/* EXIT ANIMATION */
+.modalExit {
+  animation: popOut 0.3s ease forwards;
+}
+
+/* KEYFRAMES */
+
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.7) translateY(40px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes popOut {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.7) translateY(40px);
+  }
+}
+
+.cardSubLabel {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.436);
+  margin-top: 5px;
+  margin-bottom: 10px;
+  font-family: "Poppins", sans-serif;
 }

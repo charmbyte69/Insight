@@ -13,5 +13,6 @@ class LoginRequest(BaseModel):
 
 class TokenResponse(BaseModel):
 
+    Welcome_user: str
     access_token: str
     token_type: str = "bearer"

@@ -22,7 +22,6 @@ def register(user: schema.RegisterRequest, db: Session = Depends(get_db)):
 
     return {"message": f"Instructor {created_user.instructor_id} registered successfully"}
 
-
 @router.post("/login", response_model=schema.TokenResponse)
 def login(data: schema.LoginRequest, db: Session = Depends(get_db)):
 
@@ -30,9 +29,12 @@ def login(data: schema.LoginRequest, db: Session = Depends(get_db)):
 
     if not user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
-
+    
     token = create_access_token(
         {"user_id": user.id}
     )
 
-    return {"access_token": token}
+    return {
+        "Welcome_user": user.name,
+        "access_token": token
+        }

@@ -779,3 +779,303 @@
   margin-bottom: 10px;
   font-family: "Poppins", sans-serif;
 }
+
+/* NEW BACKGROUND LOGOS */
+
+.logoCenterLeft {
+  position: absolute;
+  top: 185%;
+  left: 10px;
+  width: 1200px;
+  opacity: 0.02;
+  transform: rotate(180deg);
+  pointer-events: none;
+}
+
+.logoBottomRight {
+  position: absolute;
+  bottom: -690px;
+  right: -290px;
+  width: 1200px;
+  opacity: 0.02;
+  pointer-events: none;
+}
+
+/* IMPORT HISTORY TABLE */
+
+.historyTable {
+  margin-top: 20px;
+}
+
+.historyTable table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.historyTable th {
+  text-align: center;
+  padding: 12px 10px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.6);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  font-family: 'Poppins', sans-serif;
+}
+
+.historyTable td {
+  text-align: center;
+  padding: 30px 10px;
+  color: rgba(255,255,255,0.85);
+  font-family: 'Poppins', sans-serif;
+}
+
+.historyTable tbody tr:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.historyTable table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* ROW HOVER EFFECT */
+.historyRow {
+  position: relative;
+}
+
+/* HIDE CHECKBOX BY DEFAULT */
+.checkboxCell input {
+  opacity: 0;
+  transition: 0.2s;
+  cursor: pointer;
+}
+
+/* SHOW CHECKBOX ON HOVER */
+.historyRow:hover .checkboxCell input {
+  opacity: 1;
+}
+
+/* KEEP CHECKBOX VISIBLE IF CHECKED */
+.checkboxCell input:checked {
+  opacity: 1;
+}
+
+/* HEADER CHECKBOX SPACE */
+.checkboxHeader {
+  width: 40px;
+  text-align: center;
+}
+
+/* CHECKBOX CELL */
+.checkboxCell {
+  text-align: center;
+  width: 40px;
+}
+
+/* TRASH ICON */
+.trashIcon {
+  width: 18px;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: 0.2s;
+}
+
+.trashIcon:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.emptyRow {
+  height: 150px; /* controls vertical spacing */
+}
+
+.emptyCell {
+  text-align: center;
+  vertical-align: middle;
+  font-family: 'Poppins', sans-serif;
+  color: rgba(255,255,255,0.5);
+  font-size: 16px;
+}
+
+/* GLASS CHECKBOX */
+
+.glassCheckbox {
+  position: relative;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+/* HIDE DEFAULT CHECKBOX */
+.glassCheckbox input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* CUSTOM BOX */
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+
+  border-radius: 6px;
+
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(6px);
+
+  border: 1px solid rgba(255, 255, 255, 0.2);
+
+  transition: all 0.25s ease;
+}
+
+/* HOVER EFFECT */
+.glassCheckbox:hover .checkmark {
+  background: rgba(255, 255, 255, 0.12);
+  transform: scale(1.05);
+}
+
+/* CHECKED STATE */
+.glassCheckbox input:checked + .checkmark {
+  background: rgba(138, 180, 255, 0.25);
+  border-color: #8ab4ff;
+}
+
+/* CHECK ICON */
+.checkmark::after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+/* SHOW CHECK */
+.glassCheckbox input:checked + .checkmark::after {
+  display: block;
+}
+
+/* CHECK SHAPE */
+.glassCheckbox .checkmark::after {
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+
+  border: solid #8ab4ff;
+  border-width: 0 2px 2px 0;
+
+  transform: rotate(45deg);
+}
+
+/* HIDE GLASS CHECKBOX BY DEFAULT */
+.checkboxCell .glassCheckbox {
+  opacity: 0;
+  transition: 0.2s ease;
+}
+
+.historyRow:hover .glassCheckbox {
+  opacity: 1;
+}
+
+.glassCheckbox input:checked + .checkmark {
+  opacity: 1;
+}
+
+/* ALSO KEEP WHOLE CHECKBOX VISIBLE */
+.glassCheckbox input:checked {
+  opacity: 1;
+}
+
+.checkboxCell .glassCheckbox:has(input:checked) {
+  opacity: 1;
+}
+
+/* VIEW ICON CELL */
+.viewCell {
+  width: 40px;
+  text-align: center;
+}
+
+/* HIDE ICON BY DEFAULT */
+.viewIcon {
+  width: 18px;
+  opacity: 0;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+/* SHOW ON ROW HOVER */
+.historyRow:hover .viewIcon {
+  opacity: 0.8;
+}
+
+/* HOVER EFFECT */
+.viewIcon:hover {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+/* DELETE CONFIRM MODAL */
+
+.deleteModal {
+  width: 380px;
+  padding: 30px;
+
+  border-radius: 20px;
+
+  background: rgba(255, 255, 255, 0.171);
+  backdrop-filter: blur(12px);
+
+  box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  text-align: center;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* TEXT */
+.deleteText {
+  font-size: 18px;
+  color: white;
+}
+
+/* BUTTON BASE */
+.deleteYes,
+.deleteNo {
+  height: 55px;
+  border: none;
+  border-radius: 14px;
+
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+/* YES BUTTON */
+.deleteYes {
+  background: linear-gradient(145deg, #6a6a6a, #555);
+  color: white;
+}
+
+.deleteYes:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(145deg, #7a7a7a, #666);
+}
+
+/* NO BUTTON */
+.deleteNo {
+  background: linear-gradient(145deg, #5a5a5a, #474747);
+  color: rgba(255,255,255,0.8);
+}
+
+.deleteNo:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(145deg, #6a6a6a, #555);
+}

@@ -9,6 +9,8 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def hash_password(password: str):
+    password_bytes = password.encode("utf-8")[:72]
+    password = password_bytes.decode("utf-8", "ignore")
     return pwd_context.hash(password)
 
 def verify_password(plain, hashed):

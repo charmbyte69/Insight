@@ -1,9 +1,19 @@
 from pydantic import BaseModel
 from typing import List
+ 
+class AddData(BaseModel):
+    DataId: int
+    Values: List[int]
+    FileName: str
+    FileType: str
+    Date: str
+    Time: str
 
-class DataInput(BaseModel):
-    values: List[float]
-    class_interval: float
+class AddDataResponse(BaseModel):
+    DataId: int
+    Message: str
+
+
 
 class IntervalRow(BaseModel):
     interval: str

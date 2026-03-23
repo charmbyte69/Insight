@@ -1,7 +1,7 @@
 import numpy as np
 import statistics
 from collections import Counter
-from .dto_ungroup import SampleRequestDTO
+from .dto_ungroup import SampleRequestDTO, SampleResponseDTO
 
 class UngroupedService:
     @staticmethod
@@ -35,9 +35,11 @@ class SampleService:
         # 2. PASS the filtered_sorted data to the other service
         stats = UngroupedService.calculate_statistics(filtered_sorted)
 
-        return {
-            "Instructor_ID": user_id,  
+
+
+        return ({
+            "DataId": user_id,  
             "message": "Processed successfully",
             "filtered_values": filtered_sorted,
             "statistics": stats # Returning the combined results
-        }
+        })

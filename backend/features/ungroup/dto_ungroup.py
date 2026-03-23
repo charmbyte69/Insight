@@ -14,7 +14,7 @@ class UngroupedDataResponse(BaseModel):
     sorted_dataset: List[float]
 
 class SampleResponseDTO(BaseModel):
-    Instructor_ID: int
+    DataId: int
     message: str
     filtered_values: List[int]
     # This is where the "passed" data results will live

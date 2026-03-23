@@ -1,3 +1,44 @@
+from sqlalchemy.orm import Session
+from fastapi import HTTPException
+
+from features.data.schema import AddData
+from .data_model import Data
+from features.auth.model import User
+
+def create_data(db: Session, data: AddData, current_user: User):
+    
+    # 🔍 Optional: prevent duplicate DataId per instructor
+    existing = db.query(Data).filter(
+        Data.DataId == data.DataId,
+        Data.instructor_id == current_user.instructor_id
+    ).first()
+
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail="DataId already exists for this instructor"
+        )
+    
+    # ✅ Create new record
+    db_data = Data(
+        DataId=data.DataId,
+        instructor_id=current_user.instructor_id,
+        Values=str(data.Values),  # or JSON if you changed column type
+        Min=data.Min,
+        Max=data.Max,
+        Class_interval=data.Class_interval,
+        FileName=data.FileName,
+        FileType=data.FileType,
+        Date=data.Date,
+        Time=data.Time
+    )
+
+    db.add(db_data)
+    db.commit()
+    db.refresh(db_data)
+
+    return db_data
+
 def process_data(values, class_interval):
     values.sort()
 

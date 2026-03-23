@@ -4,6 +4,9 @@ from typing import List
 class AddData(BaseModel):
     DataId: int
     Values: List[int]
+    Min: int
+    Max: int
+    Class_interval: int
     FileName: str
     FileType: str
     Date: str
@@ -14,6 +17,11 @@ class AddDataResponse(BaseModel):
     Message: str
 
 
+class GroupDataRequest(BaseModel):
+    Values: List[int]
+    Min: int
+    Max: int
+    Class_interval: int
 
 class IntervalRow(BaseModel):
     interval: str

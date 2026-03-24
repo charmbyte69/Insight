@@ -15,7 +15,7 @@ def get_history(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)  # JWT validation
 ):
-    instructor_id = current_user.instructor_id  # extracted from token
+    instructor_id = current_user.get("instructor_id")  # Extract instructor_id from JWT payload
 
     service = HistoryService(db)
     result = service.get_history_by_instructor(instructor_id)

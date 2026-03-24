@@ -28,7 +28,8 @@ class HistoryService:
                     FileName=row.FileName,
                     FileType=row.FileType,
                     Date=row.Date,   # adjust if datetime
-                    Time=row.Time    # adjust if datetime
+                    Time=row.Time,    # adjust if datetime
+                    instructor_id=row.instructor_id  # adjust if datetime
                 )
             )
 

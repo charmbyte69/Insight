@@ -6,3 +6,4 @@ class DisplayNeededHistoryData(BaseModel):
     FileType: str
     Date: str   
     Time: str
+    instructor_id: str

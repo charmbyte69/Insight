@@ -35,19 +35,30 @@ class HistoryService:
 
         return result
     
-    def delete_history_by_dataid(self, instructor_id: str, data_id: int):
-        record = (
+    def delete_multiple_history(self, instructor_id: str, data_ids: list[int]):
+        records = (
             self.db.query(Data)
-            .filter(Data.DataId == data_id, Data.instructor_id == instructor_id)
-            .first()
+            .filter(
+                Data.DataId.in_(data_ids),
+                Data.instructor_id == instructor_id
+            )
+            .all()
         )
 
-        if not record:
+        if not records:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Record not found or not authorized to delete"
+                status_code=404,
+                detail="No records found or not authorized"
             )
 
-        self.db.delete(record)
+        deleted_ids = [record.DataId for record in records]
+
+        for record in records:
+            self.db.delete(record)
+
         self.db.commit()
-        return {"message": f"Record {data_id} deleted successfully."}
+
+        return {
+            "message": "Records deleted successfully",
+            "deleted_ids": deleted_ids
+        }

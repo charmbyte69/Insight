@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./Dashboard.module.css";
 import InsightLogo from "../assets/Insight.png";
 import FolderIcon from "../assets/folder.png";
@@ -22,8 +22,13 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import Cropper from "react-easy-crop";
+import { addData } from "../api/data";
+import { getHistory, deleteHistory} from "../api/history";
 
 const Dashboard = () => {
+  const [manualGrades, setManualGrades] = useState("");
+  const [manualIntervals, setManualIntervals] = useState("");
+  const [manualRange, setManualRange] = useState("");
   const [showChoiceModal, setShowChoiceModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showManualModal, setShowManualModal] = useState(false);
@@ -34,6 +39,11 @@ const Dashboard = () => {
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [closingModal, setClosingModal] = useState(false);
+  const [groupStats, setGroupStats] = useState({
+    mean: 0,
+    median: 0,
+    mode: 0,
+  });
   const [stats, setStats] = useState({
     mean: 0,
     median: 0,
@@ -65,6 +75,15 @@ const Dashboard = () => {
   const [imageSrc, setImageSrc] = useState(null);
   const [showCropModal, setShowCropModal] = useState(false);
   const [croppedPreview, setCroppedPreview] = useState(null);
+  const instructorId = localStorage.getItem("instructorId");
+  const token = localStorage.getItem("token");
+
+  // TEMP USER DATA (later from backend)
+  const [user, setUser] = useState({
+    name: "Justine Nabunturan",
+    instructorId: "PGCSTZ6324",
+    avatar: null,
+  });
 
   // LOAD FROM LOCAL STORAGE
   React.useEffect(() => {
@@ -82,12 +101,25 @@ const Dashboard = () => {
     }
   }, []);
 
-  // TEMP USER DATA (later from backend)
-  const [user, setUser] = useState({
-    name: "Justine Nabunturan",
-    instructorId: "PGCSTZ6324",
-    avatar: null,
-  });
+
+
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const response = await getHistory();
+        setImportHistory(response.data);
+      } catch (error) {
+        console.error("Failed to load import history:", error);
+      }
+    };
+
+    fetchHistory(); // runs after login/page load
+  }, [ungroupData]);
+  
+  
+
+  
 
   /* MODAL FUNCTIONS */
   const openChoiceModal = () => setShowChoiceModal(true);
@@ -176,13 +208,29 @@ const Dashboard = () => {
   };
 
   // DELETE SELECTED ROWS
-  const handleDeleteSelected = () => {
-    setImportHistory((prev) =>
-      prev.filter((item) => !selectedRows.includes(item.id)),
-    );
-    setSelectedRows([]);
-    setShowDelete(false);
-  };
+  const handleDeleteSelected = async () => {
+    try {
+      await deleteHistory(selectedRows);
+
+      // ✅ update UI after backend success
+      setImportHistory((prev) =>
+        prev.filter((item) => !selectedRows.includes(item.DataId))
+      );
+
+      setSelectedRows([]);
+      setShowDelete(false);
+
+    } catch (error) {
+  console.error("❌ FULL ERROR:", error);
+
+  if (error.response) {
+      console.error("🔴 Backend Response:", error.response.data);
+      alert(error.response.data.detail || "Backend error");
+    } else {
+      alert("Network or server error");
+    }
+  }
+};
 
   const confirmDelete = () => {
     handleDeleteSelected();
@@ -193,63 +241,78 @@ const Dashboard = () => {
     setShowDeleteModal(false);
   };
 
-  // VIEW / RELOAD DATA FROM HISTORY
-  const handleViewData = (item) => {
-    const grades = item.data;
+  const handleManualImport = async () => {
+    try {
+      // 🔢 Convert input string into numbers
+      const grades = manualGrades
+        .split(/[\s,]+/)
+        .map(Number)
+        .filter((num) => !isNaN(num));
 
-    // === RECOMPUTE STATS ===
-    const mean = grades.reduce((sum, val) => sum + val, 0) / grades.length;
-
-    const sorted = [...grades].sort((a, b) => a - b);
-    const mid = Math.floor(sorted.length / 2);
-
-    const median =
-      sorted.length % 2 !== 0
-        ? sorted[mid]
-        : (sorted[mid - 1] + sorted[mid]) / 2;
-
-    const freqMap = {};
-    let maxFreq = 0;
-    let mode = sorted[0];
-
-    sorted.forEach((num) => {
-      freqMap[num] = (freqMap[num] || 0) + 1;
-      if (freqMap[num] > maxFreq) {
-        maxFreq = freqMap[num];
-        mode = num;
+      if (grades.length === 0) {
+        alert("Please enter valid numeric grades");
+        return;
       }
-    });
 
-    setStats({
-      mean: mean.toFixed(1),
-      median: median.toFixed(1),
-      mode: mode,
-    });
-
-    // === UNGROUP DATA ===
-    const ungroup = Object.keys(freqMap).map((key) => ({
-      grade: key,
-      freq: freqMap[key],
-    }));
-
-    setUngroupData(ungroup);
-
-    // === GROUP DATA ===
-    if (item.ranges) {
-      const ranges = item.ranges.split(",").map((r) => r.trim());
-
-      const grouped = ranges.map((range) => {
-        const [min, max] = range.split("-").map(Number);
-
-        const freq = grades.filter((g) => g >= min && g < max).length;
-
-        return {
-          interval: `${min} - ${max}`,
-          freq,
-        };
+      const freqMap = {};
+      grades.forEach((g) => {
+        freqMap[g] = (freqMap[g] || 0) + 1;
       });
 
-      setGroupData(grouped);
+      const ungroupMapped = Object.keys(freqMap).map((key) => ({
+        grade: Number(key),
+        freq: freqMap[key],
+      }));
+
+      setUngroupData(ungroupMapped);
+
+      const min = Math.min(...grades);
+      const max = Math.max(...grades);
+
+      const { date, time } = getDateTime();
+
+      const payload = {
+        DataId: Date.now(),
+        Values: grades,
+        Min: min,
+        Max: max,
+        Class_interval: Number(manualIntervals) || 0,
+        FileName: "MANUAL",
+        FileType: "MANUAL",
+        Date: date,
+        Time: time,
+      };
+
+      console.log("📦 Payload:", payload); // DEBUG
+
+      const response = await addData(payload);
+
+      console.log("✅ Data saved:", response.data);
+
+      const newImport = {
+        DataId: payload.DataId,
+        FileName: payload.FileName,
+        FileType: payload.FileType,
+        Date: payload.Date,
+        Time: payload.Time,
+      };
+
+      setImportHistory((prev) => [newImport, ...prev]);
+
+      alert("Manual data imported successfully!");
+
+    } catch (error) {
+      console.error("❌ FULL ERROR:", error);
+
+      if (error.response) {
+        console.error("🔴 Backend Response:", error.response.data);
+        alert(error.response.data.detail || "Backend error");
+      } else if (error.request) {
+        console.error("🟡 No response:", error.request);
+        alert("Server not responding");
+      } else {
+        alert(error.message);
+      }
     }
   };
 
@@ -260,51 +323,211 @@ const Dashboard = () => {
       return;
     }
 
-    const data = await selectedFile.arrayBuffer();
-    const workbook = XLSX.read(data);
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    try {
+      // 📥 Read Excel file
+      const buffer = await selectedFile.arrayBuffer();
+      const workbook = XLSX.read(buffer);
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-    // Extract numbers only
-    const grades = json.flat().filter((val) => typeof val === "number");
+      if (!json || json.length === 0) {
+        alert("Empty or invalid Excel file");
+        return;
+      }
 
-    const rawData = grades;
-    /* UNGROUP TABLE */
-    const ungroup = grades.map((grade) => ({
-      grade,
-      freq: 0, // always 0
-    }));
+      // 🔍 Get header row
+      const header = json[0];
 
-    setUngroupData(ungroup);
+      // 🔍 Find "Grades" column (flexible match)
+      const gradeIndex = header.findIndex(
+        (col) =>
+          col &&
+          col.toString().toLowerCase().includes("grade")
+      );
 
-    /* GROUP TABLE */
-    if (rangeInput) {
-      const ranges = rangeInput.split(",").map((r) => r.trim());
+      if (gradeIndex === -1) {
+        alert('No "Grades" column found in file');
+        return;
+      }
 
-      const grouped = ranges.map((range) => {
-        return {
-          interval: range,
-          freq: 0, // no computation
-        };
+      // 🔢 Extract grades under that column
+      const grades = json
+        .slice(1)
+        .map((row) => row[gradeIndex])
+        .filter((val) => typeof val === "number");
+
+      if (grades.length === 0) {
+        alert("No valid grades found under 'Grades' column");
+        return;
+      }
+
+      // ✅ 🔥 MAP TO UNGROUP TABLE WITH FREQUENCY
+      const freqMap = {};
+      grades.forEach((g) => {
+        freqMap[g] = (freqMap[g] || 0) + 1;
       });
 
-      setGroupData(grouped);
+      const ungroupMapped = Object.keys(freqMap).map((key) => ({
+        grade: Number(key),
+        freq: freqMap[key],
+      }));
 
+      setUngroupData(ungroupMapped);
+
+      // 📊 Compute min & max
+      const min = Math.min(...grades);
+      const max = Math.max(...grades);
+
+      // 🕒 Get date & time
+      const { date, time } = getDateTime();
+
+      // 📦 Payload for backend
+      const payload = {
+        DataId: Date.now(),
+        Values: grades,
+        Min: min,
+        Max: max,
+        Class_interval: Number(intervalCount) || 0,
+        FileName: selectedFile.name,
+        FileType: selectedFile.name.split(".").pop(),
+        Date: date,
+        Time: time,
+      };
+
+      // 🚀 Send to backend
+      const response = await addData(payload);
+
+      console.log("✅ Data saved:", response.data);
+
+      // ✅ Update import history
+      const newImport = {
+        id: payload.DataId,
+        name: payload.FileName,
+        type: payload.FileType,
+        date: payload.Date,
+        time: payload.Time,
+        data: grades,
+        ranges: rangeInput,
+      };
+
+      setImportHistory((prev) => [newImport, ...prev]);
+
+      alert("Data imported successfully!");
+
+    } catch (error) {
+    console.error("❌ FULL ERROR:", error);
+
+    if (error.response) {
+      console.error("🔴 Backend Response:", error.response.data);
+      alert(error.response.data.detail || "Backend error");
+    } else {
+      alert("Network or server error");
     }
-    // SAVE TO IMPORT HISTORY
-    const { date, time } = getDateTime();
+}
+  };
 
-    const newImport = {
-      id: generateImportID(),
-      name: selectedFile.name,
-      type: selectedFile.name.split(".").pop(),
-      date,
-      time,
-      data: rawData,
-      ranges: rangeInput,
-    };
+  const handleUngroupComputation = async () => {
+    try {
+      
+      const res = await fetch(`http://localhost:8000/data/${instructorId}`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
 
-    setImportHistory((prev) => [newImport, ...prev]);
+      const data = await res.json();
+
+      setStats({
+        mean: data.ungroup_data.statistics.mean,
+        median: data.ungroup_data.statistics.median,
+        mode: data.ungroup_data.statistics.mode
+      });
+
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }    
+
+  }
+
+  const handleGroupDataComputation = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:8000/data/${instructorId}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+
+      const data = await res.json();
+
+      const table = data.group_data.table;
+
+      // Extract arrays
+      const intervals = table[0].interval;
+      const boundaries = table[1].boundaries;
+      const widths = table[2].width;
+      const frequencies = table[3].f;
+      const xis = table[4].xi;
+      const fixis = table[5].fixi;
+      const cfs = table[6].cf;
+
+      // Convert columns → rows
+      const rows = intervals.map((interval, i) => ({
+        interval: interval,
+        freq: frequencies[i],
+        xi: xis[i],
+        fixi: fixis[i],
+        cf: cfs[i],
+        boundaries: boundaries[i],
+        width: widths[i]
+      }));
+
+      setGroupStats({
+        mean: data.group_data.mean,
+        median: data.group_data.median,
+        mode: data.group_data.mode,
+      });
+
+      setGroupData(rows);
+
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  const handleUngroupDataDisplay = async () => {
+    try {
+      
+      const res = await fetch(`http://localhost:8000/data/${instructorId}`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+      const data = await res.json();
+      console.log("Instructor ID:", instructorId);
+      console.log("data", data);
+      const freqTable = data.ungroup_data.statistics.frequency_table;
+
+      // convert object → array
+      const formatted = Object.entries(freqTable).map(([grade, freq]) => ({
+        grade: Number(grade),
+        freq: freq
+      }));
+
+      setUngroupData(formatted);
+
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
   };
 
   const handleDragOver = (e) => {
@@ -476,6 +699,8 @@ const Dashboard = () => {
   };
 
   return (
+    
+
     <div className={styles.dashboardContainer}>
       {/* Background Logos */}
       <img src={InsightLogo} alt="bg" className={styles.logoTopRight} />
@@ -525,7 +750,7 @@ const Dashboard = () => {
             )}
           </div>
         </div>
-        <div className={styles.mainLayout}>
+        <div className={styles.mainLayout}>START
           {/* LEFT SIDE */}
           <div className={styles.tableSection}>
             <div className={styles.groupTable}>
@@ -549,11 +774,11 @@ const Dashboard = () => {
                           <tr key={i}>
                             <td>{row.interval}</td>
                             <td>{row.freq}</td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
+                            <td>{row.xi}</td>
+                            <td>{row.fixi}</td>
+                            <td>{row.cf}</td>
+                            <td>{row.boundaries}</td>
+                            <td>{row.width}</td>
                           </tr>
                         ))
                       : Array.from({ length: 16 }).map((_, index) => (
@@ -579,23 +804,31 @@ const Dashboard = () => {
               <div className={styles.statCard}>
                 <div className={styles.cardLabel}>MEAN</div>
                 <div className={styles.cardSubLabel}>Total computed data:</div>
-                <div className={styles.cardValue}>{stats.mean}</div>
+                <div className={styles.cardValue}>{groupStats.mean}</div>
               </div>
 
               <div className={styles.statCard}>
                 <div className={styles.cardLabel}>MODE</div>
                 <div className={styles.cardSubLabel}>Total computed data:</div>
-                <div className={styles.cardValue}>{stats.mode}</div>
+                <div className={styles.cardValue}>{groupStats.mode}</div>
               </div>
             </div>
 
             <div className={styles.medianCard}>
               <div className={styles.cardLabel}>MEDIAN</div>
               <div className={styles.cardSubLabel}>Total computed data:</div>
-              <div className={styles.cardValue}>{stats.median}</div>
+              <div className={styles.cardValue}>{groupStats.median}</div>
             </div>
 
-            <button className={styles.computeButton}>START COMPUTATION</button>
+            <button className={styles.computeButton}
+              onClick= {() => {
+                handleUngroupDataDisplay();
+                handleUngroupComputation();
+                handleGroupDataComputation();
+              }}
+            >
+              START COMPUTATION
+            </button>
           </div>
         </div>
         {/* DIVIDER */}
@@ -621,7 +854,9 @@ const Dashboard = () => {
               <div className={styles.statCard}>
                 <div className={styles.cardLabel}>MODE</div>
                 <div className={styles.cardSubLabel}>Total computed data:</div>
-                <div className={styles.cardValue}>{stats.mode}</div>
+                <div className={styles.cardValue}>{Array.isArray(stats.mode)
+    ? stats.mode.join(", ")
+    : stats.mode}</div>
               </div>
             </div>
 
@@ -689,19 +924,17 @@ const Dashboard = () => {
               <span className={styles.xAxisLabel}>Grades Interval</span>
             </div>
           </div>
+          </div>
           {/* UNGROUP GRAPH */}
           <div className={styles.insightCard}>
             <h2 className={styles.chartTitle}>Ungroup Data</h2>
-
             <div className={styles.chartWrapper}>
               <span className={styles.yAxisLabel}>Frequency</span>
-
               <ResponsiveContainer width="100%" height={530}>
                 <LineChart data={ungroupChartData}>
                   <XAxis dataKey="grade" stroke="#aaa" />
                   <YAxis stroke="#aaa" />
                   <Tooltip />
-
                   <Line
                     type="monotone"
                     dataKey="frequency"
@@ -711,85 +944,84 @@ const Dashboard = () => {
                   />
                 </LineChart>
               </ResponsiveContainer>
-
               <span className={styles.xAxisLabel}>Student Grades</span>
             </div>
           </div>
-        </div>{" "}
-        <div className={styles.sectionDivider}></div>
-        <h1 className={styles.title}>Import History</h1>
-        <div className={styles.historyTable}>
-          <div className={styles.historyWrapper}>
-            <table>
-              <thead>
-                <tr>
-                  <th className={styles.checkboxHeader}>
-                    {showDelete && (
-                      <img
-                        src={TrashIcon}
-                        alt="delete"
-                        className={styles.trashIcon}
-                        onClick={() => setShowDeleteModal(true)}
-                      />
-                    )}
-                  </th>
-                  <th>ID</th>
-                  <th>File Name</th>
-                  <th>Type</th>
-                  <th>Date</th>
-                  <th>Time</th>
-                  <th></th>
-                </tr>
-              </thead>
 
-              <tbody>
-                {importHistory.length > 0 ? (
-                  importHistory.map((item, i) => (
-                    <tr
-                      key={i}
-                      className={`${styles.historyRow} ${
-                        selectedRows.includes(item.id) ? styles.selected : ""
-                      }`}
-                    >
-                      {/* CHECKBOX COLUMN */}
-                      <td className={styles.checkboxCell}>
-                        <label className={styles.glassCheckbox}>
-                          <input
-                            type="checkbox"
-                            checked={selectedRows.includes(item.id)}
-                            onChange={() => handleSelectRow(item.id)}
-                          />
-                          <span className={styles.checkmark}></span>
-                        </label>
-                      </td>
+          <div className={styles.sectionDivider}></div>
 
-                      <td>{item.id}</td>
-                      <td>{item.name}</td>
-                      <td>{item.type}</td>
-                      <td>{item.date}</td>
-                      <td>{item.time}</td>
-                      <td className={styles.viewCell}>
+          {/* IMPORT HISTORY */}
+          <h1 className={styles.title}>Import History</h1>
+          <div className={styles.historyTable}>
+            <div className={styles.historyWrapper}>
+              <table>
+                <thead>
+                  <tr>
+                    <th className={styles.checkboxHeader}>
+                      {showDelete && (
                         <img
-                          src={ViewIcon}
-                          alt="view"
-                          className={styles.viewIcon}
-                          onClick={() => handleViewData(item)}
+                          src={TrashIcon}
+                          alt="delete"
+                          className={styles.trashIcon}
+                          onClick={() => setShowDeleteModal(true)}
                         />
+                      )}
+                    </th>
+                    <th>ID</th>
+                    <th>File Name</th>
+                    <th>Type</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {importHistory.length > 0 ? (
+                    importHistory.map((item) => (
+                      <tr
+                        key={item.DataId}
+                        className={`${styles.historyRow} ${
+                          selectedRows.includes(item.DataId) ? styles.selected : ""
+                        }`}
+                      >
+                        <td className={styles.checkboxCell}>
+                          <label className={styles.glassCheckbox}>
+                            <input
+                              type="checkbox"
+                              checked={selectedRows.includes(item.DataId)}
+                              onChange={() => handleSelectRow(item.DataId)}
+                            />
+                            <span className={styles.checkmark}></span>
+                          </label>
+                        </td>
+
+                        <td>{item.DataId}</td>
+                        <td>{item.FileName}</td>
+                        <td>{item.FileType}</td>
+                        <td>{item.Date}</td>
+                        <td>{item.Time}</td>
+                        <td className={styles.viewCell}>
+                          <img
+                            src={ViewIcon}
+                            alt="view"
+                            className={styles.viewIcon}
+                            onClick={() => handleViewData(item)}
+                          />
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr className={styles.emptyRow}>
+                      <td colSpan="7" className={styles.emptyCell}>
+                        No import history yet
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr className={styles.emptyRow}>
-                    <td colSpan="7" className={styles.emptyCell}>
-                      No import history yet
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-      </div>
       {/* CHOOSE INPUT METHOD */}
       {showChoiceModal && (
         <div className={styles.modalOverlay}>
@@ -878,6 +1110,7 @@ const Dashboard = () => {
               className={styles.importDataBtn}
               onClick={() => {
                 handleImportData();
+                handleUngroupDataDisplay();
                 closeAllModals();
               }}
             >
@@ -903,23 +1136,35 @@ const Dashboard = () => {
 
             <div className={styles.inputGroup}>
               <label>Student Grades:</label>
-              <input placeholder="ex. 60, 70, 80, 90" />
+              <input
+                placeholder="ex. 60, 70, 80, 90"
+                value={manualGrades}
+                onChange={(e) => setManualGrades(e.target.value)}
+              />
             </div>
 
             <div className={styles.inputGroup}>
               <label>Number of Intervals:</label>
-              <input placeholder="ex. 5" />
+              <input
+                placeholder="ex. 5"
+                value={manualIntervals}
+                onChange={(e) => setManualIntervals(e.target.value)}
+              />
             </div>
 
             <div className={styles.inputGroup}>
               <label>Range:</label>
-              <input placeholder="ex. 80 - 90" />
+              <input
+                placeholder="ex. 80 - 90"
+                value={manualRange}
+                onChange={(e) => setManualRange(e.target.value)}
+              />
             </div>
 
             <button
               className={styles.importDataBtn}
               onClick={() => {
-                handleImportData();
+                handleManualImport();
                 closeAllModals();
               }}
             >

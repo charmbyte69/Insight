@@ -1,10 +1,11 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 import json
-from .dto import GenerateDataResponseDTO, GetDataOnDb, UngroupRequiredDataDto
+from .dto import GenerateDataResponseDTO, GetDataOnDb, GroupDataRequiredDataDto, UngroupRequiredDataDto
 from .data_model import Data
 from features.ungroup.service_ungroup import SampleService as process_ungroup_data
 from features.ungroup.dto_ungroup import SampleRequestDTO
+from .service import process_data as process_group_data
 
 def get_recent_data(db: Session, instructor_id: str):
     # Get the most recent record
@@ -41,8 +42,15 @@ def get_recent_data(db: Session, instructor_id: str):
         data_id
     )
 
+    group_data_result = calculate_group_data(GroupDataRequiredDataDto(
+        Min=recent_data.Min,
+        Max=recent_data.Max,
+        Class_interval=recent_data.Class_interval,
+        Values=values
+    ))
+
     # Return using your DTO
-    return ungroup_data_result
+    return { "ungroup_data": ungroup_data_result, "group_data": group_data_result}
     
 def calculate_data(data: UngroupRequiredDataDto, data_id: int):
     
@@ -51,5 +59,10 @@ def calculate_data(data: UngroupRequiredDataDto, data_id: int):
         max=data.Max,
         values=data.Values
     )
-    result = process_ungroup_data.process_data(request_dto, data_id)  # Pass dummy user_id for now
+    result = process_ungroup_data.process_data(request_dto, data_id)
     return result
+
+def calculate_group_data(data: GroupDataRequiredDataDto):
+    result = process_group_data(data.Values, data.Class_interval, data.Min, data.Max)
+    return result
+    

@@ -39,5 +39,6 @@ def login(data: schema.LoginRequest, db: Session = Depends(get_db)):
 
     return {
         "Welcome_user": user.name,
+        "instructor_id": user.instructor_id,
         "access_token": token
         }

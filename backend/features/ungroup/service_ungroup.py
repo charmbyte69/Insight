@@ -35,8 +35,6 @@ class SampleService:
         # 2. PASS the filtered_sorted data to the other service
         stats = UngroupedService.calculate_statistics(filtered_sorted)
 
-
-
         return ({
             "DataId": user_id,  
             "message": "Processed successfully",

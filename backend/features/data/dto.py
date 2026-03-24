@@ -20,3 +20,9 @@ class GenerateDataResponseDTO(BaseModel):
     DataId: int
     UngroupData: SampleResponseDTO
     
+
+class GroupDataRequiredDataDto(BaseModel):
+    Min: int
+    Max: int
+    Class_interval: int
+    Values: List[int]

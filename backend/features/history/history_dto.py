@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import List
 
 class DisplayNeededHistoryData(BaseModel):
     DataId: int
@@ -7,3 +8,6 @@ class DisplayNeededHistoryData(BaseModel):
     Date: str   
     Time: str
     instructor_id: str
+
+class DeleteHistoryRequest(BaseModel):
+    data_ids: List[int]

@@ -42,8 +42,9 @@ const Login = () => {
       });
 
       const token = response.data.access_token;
-
+      const instructorId = response.data.instructor_id;
       localStorage.setItem("token", token);
+      localStorage.setItem("instructorId", instructorId);
 
       alert("Login successful");
 

@@ -8,7 +8,20 @@ import CrossIcon from "../assets/cross.png";
 import XLSIcon from "../assets/xls.png";
 import TrashIcon from "../assets/trash.png";
 import ViewIcon from "../assets/view.png";
+import DefaultUser from "../assets/Insight.png";
+import PenIcon from "../assets/pen.png";
 import * as XLSX from "xlsx";
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import Cropper from "react-easy-crop";
 
 const Dashboard = () => {
   const [showChoiceModal, setShowChoiceModal] = useState(false);
@@ -30,6 +43,51 @@ const Dashboard = () => {
   const [selectedRows, setSelectedRows] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+
+  const [profileData, setProfileData] = useState(() => {
+    return (
+      JSON.parse(localStorage.getItem("profileData")) || {
+        name: localStorage.getItem("userFirstName") || "Instructor Name",
+        id: localStorage.getItem("instructorId") || "XXXXXXX",
+        password: "************",
+        contact: "",
+        email: "",
+        photo: null,
+      }
+    );
+  });
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [imageSrc, setImageSrc] = useState(null);
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [croppedPreview, setCroppedPreview] = useState(null);
+
+  // LOAD FROM LOCAL STORAGE
+  React.useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem("profileData"));
+    if (saved) {
+      setProfileData(saved);
+
+      // 🔥 ADD THIS
+      setUser((prev) => ({
+        ...prev,
+        avatar: saved.photo,
+        name: saved.name,
+        instructorId: saved.id,
+      }));
+    }
+  }, []);
+
+  // TEMP USER DATA (later from backend)
+  const [user, setUser] = useState({
+    name: "Justine Nabunturan",
+    instructorId: "PGCSTZ6324",
+    avatar: null,
+  });
 
   /* MODAL FUNCTIONS */
   const openChoiceModal = () => setShowChoiceModal(true);
@@ -326,6 +384,142 @@ const Dashboard = () => {
     }
   };
 
+  const toggleProfileMenu = () => {
+    setShowProfileMenu((prev) => !prev);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    window.location.href = "/"; // redirect to login
+  };
+
+  const handleEditToggle = () => {
+    setIsEditing(!isEditing);
+  };
+
+  const handleProfileChange = (e) => {
+    setProfileData({
+      ...profileData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImageSrc(reader.result);
+      setShowCropModal(true); // OPEN CROPPER
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveProfile = async () => {
+    if (imageSrc && croppedAreaPixels) {
+      const croppedImage = await getCroppedImg();
+
+      setProfileData((prev) => ({
+        ...prev,
+        photo: croppedImage,
+      }));
+
+      setUser((prev) => ({
+        ...prev,
+        avatar: croppedImage, // 🔥 updates top right
+      }));
+    }
+
+    localStorage.setItem("profileData", JSON.stringify(profileData));
+
+    setShowCropModal(false);
+    setIsEditing(false);
+    setShowProfileModal(false);
+  };
+
+  const chartData = groupData.map((item) => ({
+    interval: item.interval,
+    frequency: item.freq,
+  }));
+
+  const ungroupChartData = ungroupData.map((item) => ({
+    grade: item.grade,
+    frequency: item.freq,
+  }));
+
+  const onCropComplete = async (croppedArea, croppedAreaPixels) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+
+    const croppedImg = await generateCroppedPreview(croppedAreaPixels);
+    setCroppedPreview(croppedImg);
+  };
+
+  const getCroppedImg = async () => {
+    const image = new Image();
+    image.src = imageSrc;
+
+    await new Promise((resolve) => {
+      image.onload = resolve;
+    });
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    const size = 300;
+
+    canvas.width = size;
+    canvas.height = size;
+
+    // 🔥 FORCE SQUARE CROP
+    const minSize = Math.min(croppedAreaPixels.width, croppedAreaPixels.height);
+
+    ctx.drawImage(
+      image,
+      croppedAreaPixels.x,
+      croppedAreaPixels.y,
+      minSize,
+      minSize,
+      0,
+      0,
+      size,
+      size,
+    );
+
+    return canvas.toDataURL("image/jpeg");
+  };
+
+  const generateCroppedPreview = async (croppedAreaPixels) => {
+    const image = new Image();
+    image.src = imageSrc;
+
+    await new Promise((resolve) => {
+      image.onload = resolve;
+    });
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    const size = 300;
+
+    canvas.width = size;
+    canvas.height = size;
+
+    ctx.drawImage(
+      image,
+      croppedAreaPixels.x,
+      croppedAreaPixels.y,
+      croppedAreaPixels.width,
+      croppedAreaPixels.height,
+      0,
+      0,
+      size,
+      size,
+    );
+
+    return canvas.toDataURL("image/jpeg");
+  };
+
   return (
     <div className={styles.dashboardContainer}>
       {/* Background Logos */}
@@ -343,7 +537,39 @@ const Dashboard = () => {
             Import Data
           </button>
         </div>
+        {/* PROFILE (TOP RIGHT FLOATING) */}
+        <div className={styles.profileWrapper}>
+          <div className={styles.profileContainer}>
+            <div className={styles.profileInfo}>
+              <span className={styles.userName}>{user.name}</span>
+              <span className={styles.userId}>{user.instructorId}</span>
+            </div>
 
+            <img
+              src={user.avatar || DefaultUser}
+              alt="user"
+              className={styles.profileAvatar}
+              onClick={toggleProfileMenu}
+            />
+
+            {showProfileMenu && (
+              <div className={styles.profileDropdown}>
+                <button
+                  className={styles.profileOption}
+                  onClick={() => {
+                    setShowProfileModal(true);
+                    setShowProfileMenu(false);
+                  }}
+                >
+                  Profile
+                </button>
+                <button className={styles.profileOption} onClick={handleLogout}>
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
         <div className={styles.mainLayout}>
           {/* LEFT SIDE */}
           <div className={styles.tableSection}>
@@ -417,13 +643,10 @@ const Dashboard = () => {
             <button className={styles.computeButton}>START COMPUTATION</button>
           </div>
         </div>
-
         {/* DIVIDER */}
         <div className={styles.sectionDivider}></div>
-
         {/* UNGROUP TITLE */}
         <h1 className={styles.title}>Ungroup Data</h1>
-
         <div className={styles.ungroupLayout}>
           {/* LEFT */}
           <div className={styles.ungroupLeft}>
@@ -482,10 +705,68 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+        {/* INSIGHTS SECTION */}
+        <div className={styles.sectionDivider}></div>
+        <h1 className={styles.title}>Insights</h1>
+        <div className={styles.insightContainer}>
+          {" "}
+          {/* ✅ ADD THIS */}
+          {/* GROUP GRAPH */}
+          <div className={styles.insightCard}>
+            <h2 className={styles.chartTitle}>Group Data</h2>
+
+            <div className={styles.chartWrapper}>
+              <span className={styles.yAxisLabel}>Frequency</span>
+
+              <ResponsiveContainer width="100%" height={530}>
+                <BarChart data={chartData}>
+                  <XAxis dataKey="interval" stroke="#aaa" />
+                  <YAxis stroke="#aaa" />
+                  <Tooltip />
+
+                  <Bar
+                    dataKey="frequency"
+                    radius={[10, 10, 0, 0]}
+                    fill="rgba(255,255,255,0.18)"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+
+              <span className={styles.xAxisLabel}>Grades Interval</span>
+            </div>
+          </div>
+          {/* UNGROUP GRAPH */}
+          <div className={styles.insightCard}>
+            <h2 className={styles.chartTitle}>Ungroup Data</h2>
+
+            <div className={styles.chartWrapper}>
+              <span className={styles.yAxisLabel}>Frequency</span>
+
+              <ResponsiveContainer width="100%" height={530}>
+                <LineChart data={ungroupChartData}>
+                  <XAxis dataKey="grade" stroke="#aaa" />
+                  <YAxis stroke="#aaa" />
+                  <Tooltip />
+
+                  <Line
+                    type="monotone"
+                    dataKey="frequency"
+                    stroke="rgba(255,255,255,0.5)"
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+
+              <span className={styles.xAxisLabel}>Student Grades</span>
+            </div>
+          </div>
+        </div>{" "}
+        {/* ✅ END CONTAINER */}
         <div className={styles.sectionDivider}></div>
         <h1 className={styles.title}>Import History</h1>
-
         <div className={styles.historyTable}>
+          <div className={styles.historyWrapper}>
           <table>
             <thead>
               <tr>
@@ -553,6 +834,7 @@ const Dashboard = () => {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
       {/* CHOOSE INPUT METHOD */}
@@ -707,6 +989,141 @@ const Dashboard = () => {
 
             <button className={styles.deleteNo} onClick={cancelDelete}>
               No, Keep this file!
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showProfileModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.profileModal}>
+            {/* CLOSE BUTTON */}
+            <img
+              src={CrossIcon}
+              alt="close"
+              className={styles.profileClose}
+              onClick={() => setShowProfileModal(false)}
+            />
+
+            {/* EDIT BUTTON */}
+            <img
+              src={PenIcon}
+              alt="edit"
+              className={styles.profileEdit}
+              onClick={handleEditToggle}
+            />
+
+            <h2 className={styles.profileTitle}>Instructor Profile</h2>
+
+            {/* PROFILE IMAGE */}
+            <div className={styles.profileImageWrapper}>
+              <label>
+                <input type="file" hidden onChange={handlePhotoUpload} />
+
+                <div className={styles.profileImage}>
+                  {croppedPreview ? (
+                    <img
+                      src={croppedPreview} // 🔥 LIVE CROPPED IMAGE
+                      alt="preview"
+                      className={styles.profilePreview}
+                    />
+                  ) : profileData.photo ? (
+                    <img
+                      src={profileData.photo}
+                      alt="profile"
+                      className={styles.profilePreview}
+                    />
+                  ) : (
+                    <span>Upload a picture</span>
+                  )}
+                </div>
+              </label>
+            </div>
+
+            {/* INFO GRID */}
+            <div className={styles.profileGrid}>
+              {/* LEFT LABELS */}
+              <div className={styles.profileLabels}>
+                <p>Instructor Full Name:</p>
+                <p>Instructor ID:</p>
+                <p>Password:</p>
+                <p>Contact No:</p>
+                <p>Email:</p>
+              </div>
+
+              {/* RIGHT VALUES */}
+              <div className={styles.profileValues}>
+                <p>{profileData.name}</p>
+                <p>{profileData.id}</p>
+                <p>{profileData.password}</p>
+
+                {isEditing ? (
+                  <>
+                    <input
+                      name="contact"
+                      placeholder="Add phone number"
+                      value={profileData.contact}
+                      onChange={handleProfileChange}
+                    />
+                    <input
+                      name="email"
+                      placeholder="Add email address"
+                      value={profileData.email}
+                      onChange={handleProfileChange}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <p className={styles.placeholder}>
+                      {profileData.contact || "Add phone number"}
+                    </p>
+                    <p className={styles.placeholder}>
+                      {profileData.email || "Add email address"}
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* BUTTON */}
+            <button className={styles.applyBtn} onClick={handleSaveProfile}>
+              Apply changes
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showCropModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.cropModal}>
+            <h2 className={styles.cropTitle}>Crop Image</h2>
+
+            <div className={styles.cropContainer}>
+              <Cropper
+                image={imageSrc}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+              />
+            </div>
+
+            <input
+              type="range"
+              min={1}
+              max={3}
+              step={0.1}
+              value={zoom}
+              onChange={(e) => setZoom(e.target.value)}
+            />
+
+            <button
+              className={styles.applyBtn}
+              onClick={() => setShowCropModal(false)}
+            >
+              Done Cropping
             </button>
           </div>
         </div>

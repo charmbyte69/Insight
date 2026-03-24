@@ -260,41 +260,6 @@ const Dashboard = () => {
       return;
     }
 
-    const computeStats = (data) => {
-      if (data.length === 0) return;
-
-      // MEAN
-      const mean = data.reduce((sum, val) => sum + val, 0) / data.length;
-
-      // MEDIAN
-      const sorted = [...data].sort((a, b) => a - b);
-      const mid = Math.floor(sorted.length / 2);
-
-      const median =
-        sorted.length % 2 !== 0
-          ? sorted[mid]
-          : (sorted[mid - 1] + sorted[mid]) / 2;
-
-      // MODE
-      const freqMap = {};
-      let maxFreq = 0;
-      let mode = sorted[0];
-
-      sorted.forEach((num) => {
-        freqMap[num] = (freqMap[num] || 0) + 1;
-
-        if (freqMap[num] > maxFreq) {
-          maxFreq = freqMap[num];
-          mode = num;
-        }
-      });
-
-      setStats({
-        mean: mean.toFixed(1),
-        median: median.toFixed(1),
-        mode: mode,
-      });
-    };
     const data = await selectedFile.arrayBuffer();
     const workbook = XLSX.read(data);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -302,19 +267,12 @@ const Dashboard = () => {
 
     // Extract numbers only
     const grades = json.flat().filter((val) => typeof val === "number");
-    computeStats(grades);
 
     const rawData = grades;
     /* UNGROUP TABLE */
-    const freqMap = {};
-
-    grades.forEach((g) => {
-      freqMap[g] = (freqMap[g] || 0) + 1;
-    });
-
-    const ungroup = Object.keys(freqMap).map((key) => ({
-      grade: key,
-      freq: freqMap[key],
+    const ungroup = grades.map((grade) => ({
+      grade,
+      freq: 0, // always 0
     }));
 
     setUngroupData(ungroup);
@@ -324,17 +282,14 @@ const Dashboard = () => {
       const ranges = rangeInput.split(",").map((r) => r.trim());
 
       const grouped = ranges.map((range) => {
-        const [min, max] = range.split("-").map(Number);
-
-        const freq = grades.filter((g) => g >= min && g < max).length;
-
         return {
-          interval: `${min} - ${max}`,
-          freq,
+          interval: range,
+          freq: 0, // no computation
         };
       });
 
       setGroupData(grouped);
+
     }
     // SAVE TO IMPORT HISTORY
     const { date, time } = getDateTime();
@@ -390,7 +345,7 @@ const Dashboard = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    window.location.href = "/"; // redirect to login
+    window.location.href = "/";
   };
 
   const handleEditToggle = () => {
@@ -710,7 +665,6 @@ const Dashboard = () => {
         <h1 className={styles.title}>Insights</h1>
         <div className={styles.insightContainer}>
           {" "}
-          {/* ✅ ADD THIS */}
           {/* GROUP GRAPH */}
           <div className={styles.insightCard}>
             <h2 className={styles.chartTitle}>Group Data</h2>
@@ -762,78 +716,77 @@ const Dashboard = () => {
             </div>
           </div>
         </div>{" "}
-        {/* ✅ END CONTAINER */}
         <div className={styles.sectionDivider}></div>
         <h1 className={styles.title}>Import History</h1>
         <div className={styles.historyTable}>
           <div className={styles.historyWrapper}>
-          <table>
-            <thead>
-              <tr>
-                <th className={styles.checkboxHeader}>
-                  {showDelete && (
-                    <img
-                      src={TrashIcon}
-                      alt="delete"
-                      className={styles.trashIcon}
-                      onClick={() => setShowDeleteModal(true)}
-                    />
-                  )}
-                </th>
-                <th>ID</th>
-                <th>File Name</th>
-                <th>Type</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th></th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {importHistory.length > 0 ? (
-                importHistory.map((item, i) => (
-                  <tr
-                    key={i}
-                    className={`${styles.historyRow} ${
-                      selectedRows.includes(item.id) ? styles.selected : ""
-                    }`}
-                  >
-                    {/* CHECKBOX COLUMN */}
-                    <td className={styles.checkboxCell}>
-                      <label className={styles.glassCheckbox}>
-                        <input
-                          type="checkbox"
-                          checked={selectedRows.includes(item.id)}
-                          onChange={() => handleSelectRow(item.id)}
-                        />
-                        <span className={styles.checkmark}></span>
-                      </label>
-                    </td>
-
-                    <td>{item.id}</td>
-                    <td>{item.name}</td>
-                    <td>{item.type}</td>
-                    <td>{item.date}</td>
-                    <td>{item.time}</td>
-                    <td className={styles.viewCell}>
+            <table>
+              <thead>
+                <tr>
+                  <th className={styles.checkboxHeader}>
+                    {showDelete && (
                       <img
-                        src={ViewIcon}
-                        alt="view"
-                        className={styles.viewIcon}
-                        onClick={() => handleViewData(item)}
+                        src={TrashIcon}
+                        alt="delete"
+                        className={styles.trashIcon}
+                        onClick={() => setShowDeleteModal(true)}
                       />
+                    )}
+                  </th>
+                  <th>ID</th>
+                  <th>File Name</th>
+                  <th>Type</th>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th></th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {importHistory.length > 0 ? (
+                  importHistory.map((item, i) => (
+                    <tr
+                      key={i}
+                      className={`${styles.historyRow} ${
+                        selectedRows.includes(item.id) ? styles.selected : ""
+                      }`}
+                    >
+                      {/* CHECKBOX COLUMN */}
+                      <td className={styles.checkboxCell}>
+                        <label className={styles.glassCheckbox}>
+                          <input
+                            type="checkbox"
+                            checked={selectedRows.includes(item.id)}
+                            onChange={() => handleSelectRow(item.id)}
+                          />
+                          <span className={styles.checkmark}></span>
+                        </label>
+                      </td>
+
+                      <td>{item.id}</td>
+                      <td>{item.name}</td>
+                      <td>{item.type}</td>
+                      <td>{item.date}</td>
+                      <td>{item.time}</td>
+                      <td className={styles.viewCell}>
+                        <img
+                          src={ViewIcon}
+                          alt="view"
+                          className={styles.viewIcon}
+                          onClick={() => handleViewData(item)}
+                        />
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr className={styles.emptyRow}>
+                    <td colSpan="7" className={styles.emptyCell}>
+                      No import history yet
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr className={styles.emptyRow}>
-                  <td colSpan="7" className={styles.emptyCell}>
-                    No import history yet
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

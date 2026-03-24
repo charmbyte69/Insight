@@ -44,7 +44,13 @@ def get_current_user(
 
         # Example: extract user info from token
         user_id = payload.get("user_id")
+        instructor_id = payload.get("instructor_id")
         
+        results = {
+            "user_id": user_id,
+            "instructor_id": instructor_id
+        }
+
         if user_id is None:
             raise HTTPException(status_code=401, detail="Invalid token")
 
@@ -53,7 +59,7 @@ def get_current_user(
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        return user  # or return user_id
+        return results  # or return user_id
 
     except JWTError:
         raise HTTPException(

@@ -26,6 +26,9 @@ import { addData } from "../api/data";
 import { getHistory, deleteHistory} from "../api/history";
 
 const Dashboard = () => {
+  const [manualGrades, setManualGrades] = useState("");
+  const [manualIntervals, setManualIntervals] = useState("");
+  const [manualRange, setManualRange] = useState("");
   const [showChoiceModal, setShowChoiceModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showManualModal, setShowManualModal] = useState(false);
@@ -236,6 +239,81 @@ const Dashboard = () => {
 
   const cancelDelete = () => {
     setShowDeleteModal(false);
+  };
+
+  const handleManualImport = async () => {
+    try {
+      // 🔢 Convert input string into numbers
+      const grades = manualGrades
+        .split(/[\s,]+/)
+        .map(Number)
+        .filter((num) => !isNaN(num));
+
+      if (grades.length === 0) {
+        alert("Please enter valid numeric grades");
+        return;
+      }
+
+      const freqMap = {};
+      grades.forEach((g) => {
+        freqMap[g] = (freqMap[g] || 0) + 1;
+      });
+
+      const ungroupMapped = Object.keys(freqMap).map((key) => ({
+        grade: Number(key),
+        freq: freqMap[key],
+      }));
+
+      setUngroupData(ungroupMapped);
+
+      const min = Math.min(...grades);
+      const max = Math.max(...grades);
+
+      const { date, time } = getDateTime();
+
+      const payload = {
+        DataId: Date.now(),
+        Values: grades,
+        Min: min,
+        Max: max,
+        Class_interval: Number(manualIntervals) || 0,
+        FileName: "MANUAL",
+        FileType: "MANUAL",
+        Date: date,
+        Time: time,
+      };
+
+      console.log("📦 Payload:", payload); // DEBUG
+
+      const response = await addData(payload);
+
+      console.log("✅ Data saved:", response.data);
+
+      const newImport = {
+        DataId: payload.DataId,
+        FileName: payload.FileName,
+        FileType: payload.FileType,
+        Date: payload.Date,
+        Time: payload.Time,
+      };
+
+      setImportHistory((prev) => [newImport, ...prev]);
+
+      alert("Manual data imported successfully!");
+
+    } catch (error) {
+      console.error("❌ FULL ERROR:", error);
+
+      if (error.response) {
+        console.error("🔴 Backend Response:", error.response.data);
+        alert(error.response.data.detail || "Backend error");
+      } else if (error.request) {
+        console.error("🟡 No response:", error.request);
+        alert("Server not responding");
+      } else {
+        alert(error.message);
+      }
+    }
   };
 
   /* DRAG & DROP FUNCTIONS */
@@ -1058,23 +1136,35 @@ const Dashboard = () => {
 
             <div className={styles.inputGroup}>
               <label>Student Grades:</label>
-              <input placeholder="ex. 60, 70, 80, 90" />
+              <input
+                placeholder="ex. 60, 70, 80, 90"
+                value={manualGrades}
+                onChange={(e) => setManualGrades(e.target.value)}
+              />
             </div>
 
             <div className={styles.inputGroup}>
               <label>Number of Intervals:</label>
-              <input placeholder="ex. 5" />
+              <input
+                placeholder="ex. 5"
+                value={manualIntervals}
+                onChange={(e) => setManualIntervals(e.target.value)}
+              />
             </div>
 
             <div className={styles.inputGroup}>
               <label>Range:</label>
-              <input placeholder="ex. 80 - 90" />
+              <input
+                placeholder="ex. 80 - 90"
+                value={manualRange}
+                onChange={(e) => setManualRange(e.target.value)}
+              />
             </div>
 
             <button
               className={styles.importDataBtn}
               onClick={() => {
-                handleImportData();
+                handleManualImport();
                 closeAllModals();
               }}
             >

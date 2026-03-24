@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
 from features.auth.router import router as auth_router
 from features.data.router import router as data_router  # correct import
+from features.history.history_router import router as history_router  # correct import
 
 Base.metadata.create_all(bind=engine)
 
@@ -23,6 +24,7 @@ app.add_middleware(
 # Include routers
 app.include_router(auth_router)
 app.include_router(data_router)  # <-- this makes /data/process available
+app.include_router(history_router)
 
 @app.get("/")
 def root():

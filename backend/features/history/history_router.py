@@ -1,0 +1,23 @@
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from typing import List
+
+from app.database import get_db  # your DB dependency
+from .history_service import HistoryService
+from .history_dto import DisplayNeededHistoryData
+from app.security import get_current_user  # your JWT function
+
+router = APIRouter(prefix="/history", tags=["history"])
+
+
+@router.get("/", response_model=List[DisplayNeededHistoryData])
+def get_history(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)  # JWT validation
+):
+    instructor_id = current_user.instructor_id  # extracted from token
+
+    service = HistoryService(db)
+    result = service.get_history_by_instructor(instructor_id)
+
+    return result

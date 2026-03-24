@@ -31,7 +31,10 @@ def login(data: schema.LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     token = create_access_token(
-        {"user_id": user.id}
+        {
+            "user_id": user.id,
+            "instructor_id": user.instructor_id
+        }
     )
 
     return {

@@ -1,3 +1,5 @@
+
+
 from fastapi import APIRouter, Depends, Path
 from sqlalchemy.orm import Session
 from typing import List
@@ -6,6 +8,7 @@ from app.database import get_db  # your DB dependency
 from .history_service import HistoryService
 from .history_dto import DisplayNeededHistoryData
 from app.security import get_current_user  # your JWT function
+from .history_dto import DeleteHistoryRequest
 
 router = APIRouter(prefix="/history", tags=["history"])
 
@@ -22,15 +25,24 @@ def get_history(
 
     return result
 
-@router.delete("/{data_id}")
+@router.delete("/")
 def delete_history(
-    data_id: int = Path(..., description="ID of the data record to delete"),
+    request: DeleteHistoryRequest,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
-    instructor_id = current_user.get("instructor_id")  # Extract from JWT
+    instructor_id = current_user.get("instructor_id")
 
     service = HistoryService(db)
-    result = service.delete_history_by_dataid(instructor_id, data_id)
-    
+    result = service.delete_multiple_history(instructor_id, request.data_ids)
+
     return result
+
+@router.get("/")
+def get_history_by_id(
+    data_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    
+    return None

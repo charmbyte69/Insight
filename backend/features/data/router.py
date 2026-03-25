@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from features.ungroup.dto_ungroup import SampleResponseDTO
 from .schema import AddData
 from .dto import GetDataOnDb, GenerateDataResponseDTO
-from .DataCrossService import get_recent_data
+from .DataCrossService import get_data_by_data_id, get_recent_data
 from .service import process_data
 from app.security import get_current_user
 from sqlalchemy.orm import Session
@@ -20,17 +20,21 @@ def process(
 ):
     user_id = current_user["user_id"]
 
-    result = process_data(input_data.Values, input_data.Class_interval)
+    result = process_data(input_data.Values, input_data.Class_interval, input_data.Min, input_data.Max)
 
     return {
+        "title": "Group Data",
         "user_id": user_id,
-        "result": result
+        "mean": result["mean"],
+        "median": result["median"],
+        "mode": result["mode"],
+        "table": result["table"]
     }
 
 @router.post("/add_data")
 def add_data(
     data: AddData,
-    current_user = Depends(get_current_user),
+    current_user = Depends(get_current_user),  # returns dict
     db: Session = Depends(get_db)
 ):
     db_data = create_data(db, data, current_user)
@@ -38,10 +42,10 @@ def add_data(
     return {
         "message": "Data added successfully",
         "data_id": db_data.DataId,
-        "instructor_id": db_data.instructor_id
+        "instructor_id": current_user["instructor_id"]  # dict access
     }
 
-@router.get("/{instructor_id}", response_model=SampleResponseDTO)
+@router.get("/{instructor_id}")
 def get_recent(
     instructor_id: str,
     current_user=Depends(get_current_user),
@@ -53,7 +57,7 @@ def get_recent(
         GetDataOnDb: DataId and Values list[int]
     """
 
-    if instructor_id != current_user.instructor_id:
+    if instructor_id != current_user.get("instructor_id"):
         raise HTTPException(
             status_code=403,
             detail="You are not authorized to access this instructor's data"
@@ -65,4 +69,15 @@ def get_recent(
         # propagate 404 or 500 from service
         raise e
 
-    return recent_data
+    return 
+
+
+@router.get("/view_data/{data_id}")
+def get_data(
+    data_id: str,
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+
+    instructor_id = current_user.get("instructor_id")
+    return get_data_by_data_id(db, data_id, current_user["instructor_id"])

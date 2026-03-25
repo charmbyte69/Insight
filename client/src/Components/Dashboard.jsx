@@ -426,6 +426,83 @@ const Dashboard = () => {
 }
   };
 
+  const handleViewData = (item) => {
+    console.log("Viewing DataId:", item.DataId); // debug
+
+    fetchComputedData(item.DataId);
+  };
+
+  const fetchComputedData = async (dataId) => {
+    try {
+      const res = await fetch(
+        `http://localhost:8000/data/view_data/${dataId}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+
+      const data = await res.json();
+
+      const mapped = mapBackendData(data);
+
+      // 🔥 distribute to states
+      setStats(mapped.ungroupStats);
+      setUngroupData(mapped.ungroupTable);
+
+      setGroupStats(mapped.groupStats);
+      setGroupData(mapped.groupTable);
+
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  const mapBackendData = (data) => {
+    // 🔹 UNGROUP
+    const ungroupStats = {
+      mean: data.ungroup_data.statistics.mean,
+      median: data.ungroup_data.statistics.median,
+      mode: data.ungroup_data.statistics.mode
+    };
+
+    const freqTable = data.ungroup_data.statistics.frequency_table;
+
+    const ungroupTable = Object.entries(freqTable).map(([grade, freq]) => ({
+      grade: Number(grade),
+      freq: freq
+    }));
+
+    // 🔹 GROUP
+    const table = data.group_data.table;
+
+    const rows = table[0].interval.map((interval, i) => ({
+      interval: interval,
+      freq: table[3].f[i],
+      xi: table[4].xi[i],
+      fixi: table[5].fixi[i],
+      cf: table[6].cf[i],
+      boundaries: table[1].boundaries[i],
+      width: table[2].width[i]
+    }));
+
+    const groupStats = {
+      mean: data.group_data.mean,
+      median: data.group_data.median,
+      mode: data.group_data.mode
+    };
+
+    return {
+      ungroupStats,
+      ungroupTable,
+      groupStats,
+      groupTable: rows
+    };
+  };
+
   const handleUngroupComputation = async () => {
     try {
       

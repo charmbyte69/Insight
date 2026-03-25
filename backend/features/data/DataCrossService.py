@@ -52,6 +52,59 @@ def get_recent_data(db: Session, instructor_id: str):
     # Return using your DTO
     return { "ungroup_data": ungroup_data_result, "group_data": group_data_result}
     
+def get_data_by_data_id(db: Session, data_id: str, instructor_id: str):
+    data = (
+        db.query(Data)
+        .filter(
+            Data.DataId == data_id,
+            Data.instructor_id == instructor_id
+        )
+        .first()
+    )
+
+    if not data:
+        raise HTTPException(
+            status_code=404,
+            detail="Data not found or not authorized"
+        )
+
+    # Convert Values
+    try:
+        values = json.loads(data.Values)
+        if not isinstance(values, list) or not all(isinstance(x, int) for x in values):
+            raise ValueError()
+    except Exception:
+        raise HTTPException(
+            status_code=500,
+            detail="Invalid Values format in database"
+        )
+
+    # Process ungrouped
+    ungroup_data_result = calculate_data(
+        UngroupRequiredDataDto(
+            Min=data.Min,
+            Max=data.Max,
+            Values=values
+        ),
+        data.DataId
+    )
+
+    # Process grouped
+    group_data_result = calculate_group_data(
+        GroupDataRequiredDataDto(
+            Min=data.Min,
+            Max=data.Max,
+            Class_interval=data.Class_interval,
+            Values=values
+        )
+    )
+
+    return {
+        "ungroup_data": ungroup_data_result,
+        "group_data": group_data_result
+    }
+
+
 def calculate_data(data: UngroupRequiredDataDto, data_id: int):
     
     request_dto = SampleRequestDTO(

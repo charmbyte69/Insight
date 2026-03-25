@@ -1,3 +1,5 @@
+
+
 from fastapi import APIRouter, Depends, Path
 from sqlalchemy.orm import Session
 from typing import List
@@ -35,3 +37,12 @@ def delete_history(
     result = service.delete_multiple_history(instructor_id, request.data_ids)
 
     return result
+
+@router.get("/")
+def get_history_by_id(
+    data_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    
+    return None

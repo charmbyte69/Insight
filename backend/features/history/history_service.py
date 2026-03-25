@@ -2,8 +2,8 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from typing import List
 from features.data.data_model import Data  # adjust import based on your project
-from .history_dto import DisplayNeededHistoryData  # adjust path if needed
-
+from .history_dto import DisplayNeededHistoryData 
+from features.ungroup.dto_ungroup import UngroupedDataResponse, SampleResponseDTO  
 
 class HistoryService:
     def __init__(self, db: Session):

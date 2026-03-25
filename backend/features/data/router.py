@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from features.ungroup.dto_ungroup import SampleResponseDTO
 from .schema import AddData
 from .dto import GetDataOnDb, GenerateDataResponseDTO
-from .DataCrossService import get_recent_data
+from .DataCrossService import get_data_by_data_id, get_recent_data
 from .service import process_data
 from app.security import get_current_user
 from sqlalchemy.orm import Session
@@ -69,4 +69,15 @@ def get_recent(
         # propagate 404 or 500 from service
         raise e
 
-    return recent_data
+    return 
+
+
+@router.get("/view_data/{data_id}")
+def get_data(
+    data_id: str,
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+
+    instructor_id = current_user.get("instructor_id")
+    return get_data_by_data_id(db, data_id, current_user["instructor_id"])
